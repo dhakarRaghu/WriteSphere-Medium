@@ -1,1 +1,0 @@
-# WriteSphere-Medium

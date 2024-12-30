@@ -1,30 +1,30 @@
 import z from "zod";
 export declare const signupInput: z.ZodObject<{
-    email: z.ZodString;
+    username: z.ZodString;
     password: z.ZodString;
     name: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    email: string;
+    username: string;
     password: string;
     name?: string | undefined;
 }, {
-    email: string;
+    username: string;
     password: string;
     name?: string | undefined;
 }>;
-export type SignupType = z.infer<typeof signupInput>;
+export type SignupInput = z.infer<typeof signupInput>;
 export declare const signinInput: z.ZodObject<{
-    email: z.ZodString;
+    username: z.ZodString;
     password: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    email: string;
+    username: string;
     password: string;
 }, {
-    email: string;
+    username: string;
     password: string;
 }>;
-export type SigninType = z.infer<typeof signinInput>;
-export declare const createPostInput: z.ZodObject<{
+export type SigninInput = z.infer<typeof signinInput>;
+export declare const createBlogInput: z.ZodObject<{
     title: z.ZodString;
     content: z.ZodString;
 }, "strip", z.ZodTypeAny, {
@@ -34,15 +34,18 @@ export declare const createPostInput: z.ZodObject<{
     title: string;
     content: string;
 }>;
-export type CreatePostType = z.infer<typeof createPostInput>;
-export declare const updatePostInput: z.ZodObject<{
-    title: z.ZodOptional<z.ZodString>;
-    content: z.ZodOptional<z.ZodString>;
+export type CreateBlogInput = z.infer<typeof createBlogInput>;
+export declare const updateBlogInput: z.ZodObject<{
+    title: z.ZodString;
+    content: z.ZodString;
+    id: z.ZodNumber;
 }, "strip", z.ZodTypeAny, {
-    title?: string | undefined;
-    content?: string | undefined;
+    title: string;
+    content: string;
+    id: number;
 }, {
-    title?: string | undefined;
-    content?: string | undefined;
+    title: string;
+    content: string;
+    id: number;
 }>;
-export type UpdatePostType = z.infer<typeof updatePostInput>;
+export type UpdateBlogInput = z.infer<typeof updateBlogInput>;

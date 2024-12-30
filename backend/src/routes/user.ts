@@ -1,11 +1,8 @@
-import { PrismaClient } from "@prisma/client/edge";
-import { withAccelerate } from "@prisma/extension-accelerate";
 import { Hono } from "hono";
-import { sign } from "hono/jwt";
-
-// import commonRaghvendra from 'common-raghvendra';
-import { signinInput , signupInput } from "../types/validation"
-  
+import { PrismaClient } from '@prisma/client/edge'
+import { withAccelerate } from '@prisma/extension-accelerate'
+import { sign } from 'hono/jwt'
+import { signupInput, signinInput } from "@raghvendra_04/medium-common";
 
 export const userRouter = new Hono<{
     Bindings: {
@@ -13,63 +10,76 @@ export const userRouter = new Hono<{
         JWT_SECRET: string;
     }
 }>();
+
 userRouter.post('/signup', async (c) => {
     const body = await c.req.json();
-
-    // Validate input using zod schema
-    const { success, error } = signupInput.safeParse(body);
+    const { success } = signupInput.safeParse(body);
     if (!success) {
-        // If validation fails, return a proper error response
-        return c.json({ error: "Invalid input", details: error.errors }, 400); // 400 Bad Request
+        c.status(411);
+        return c.json({
+            message: "Inputs not correct"
+        })
+    }
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+    }).$extends(withAccelerate())
+  
+    try {
+      const user = await prisma.user.create({
+        data: {
+          username: body.username,
+          password: body.password,
+          name: body.name
+        }
+      })
+      const jwt = await sign({
+        id: user.id
+      }, c.env.JWT_SECRET);
+  
+      return c.text(jwt)
+    } catch(e) {
+      console.log(e);
+      c.status(411);
+      return c.text('Invalid')
+    }
+  })
+  
+  
+  userRouter.post('/signin', async (c) => {
+    const body = await c.req.json();
+    const { success } = signinInput.safeParse(body);
+    if (!success) {
+        c.status(411);
+        return c.json({
+            message: "Inputs not correct"
+        })
     }
 
     const prisma = new PrismaClient({
       datasourceUrl: c.env.DATABASE_URL,
-    }).$extends(withAccelerate());
-
-    // Proceed with creating user only if validation passes
-    const user = await prisma.user.create({
-      data: {
-        email: body.email,
-        password: body.password,
-      },
-    });
-
-    const token = await sign({ id: user.id }, c.env.JWT_SECRET);
-
-    return c.json({
-      jwt: token,
-    });
-});
-
-userRouter.post('/signin', async (c) => {
-    const body = await c.req.json();
-
-    // Validate input using zod schema
-    const { success, error } = signinInput.safeParse(body);
-    if (!success) {
-        // If validation fails, return a proper error response
-        return c.json({ error: "Invalid input", details: error.errors }, 400); // 400 Bad Request
-    }
-
-    const prisma = new PrismaClient({
-      //@ts-ignore
-      datasourceUrl: c.env?.DATABASE_URL,
-    }).$extends(withAccelerate());
-
-    const user = await prisma.user.findUnique({
+    }).$extends(withAccelerate())
+  
+    try {
+      const user = await prisma.user.findFirst({
         where: {
-            email: body.email,
-            password: body.password,
-        },
-    });
-
-    if (!user) {
+          username: body.username,
+          password: body.password,
+        }
+      })
+      if (!user) {
         c.status(403);
-        return c.json({ error: "User not found" });
+        return c.json({
+          message: "Incorrect creds"
+        })
+      }
+      const jwt = await sign({
+        id: user.id
+      }, c.env.JWT_SECRET);
+  
+      return c.text(jwt)
+    } catch(e) {
+      console.log(e);
+      c.status(411);
+      return c.text('Invalid')
     }
-
-    const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);
-    return c.json({ jwt });
-});
- 
+  })

@@ -1,8 +1,8 @@
 
-export const Blog = () => {
+export const blog = () => {
   return (
     <div>
-      
+      blog
     </div>
   )
 }
