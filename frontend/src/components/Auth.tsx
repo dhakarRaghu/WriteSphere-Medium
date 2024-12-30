@@ -9,60 +9,100 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
     const [postInputs, setPostInputs] = useState<SignupInput>({
         name: "",
         username: "",
-        password: ""
+        password: "",
     });
+    const [error, setError] = useState<string | null>(null);
 
     async function sendRequest() {
         try {
-            const response = await axios.post(`${BACKEND_URL}/api/v1/user/${type === "signup" ? "signup" : "signin"}`, postInputs);
+            const response = await axios.post(
+                `${BACKEND_URL}/api/v1/user/${type === "signup" ? "signup" : "signin"}`,
+                postInputs
+            );
             const jwt = response.data;
             localStorage.setItem("token", jwt);
             navigate("/blogs");
-        } catch(e) {
-            alert("Error while signing up")
-            // alert the user here that the request failed
+        } catch (e: any) {
+            const errorMessage = e.response?.data?.message || "An error occurred. Please try again.";
+            setError(errorMessage);
+            setTimeout(() => setError(null), 3000); // Clear the error after 3 seconds
         }
     }
-    
-    return <div className="h-screen flex justify-center flex-col">
-        <div className="flex justify-center">
-            <div>
-                <div className="px-10">
-                    <div className="text-3xl font-extrabold">
-                        Create an account
-                    </div>
-                    <div className="text-slate-500">
-                        {type === "signin" ? "Don't have an account?" : "Already have an account?" }
-                        <Link className="pl-2 underline" to={type === "signin" ? "/signup" : "/signin"}>
+
+    return (
+        <div className="h-screen flex justify-center items-center">
+            <div className="w-full max-w-md p-6 bg-white shadow-md rounded-lg">
+                <div className="mb-4 text-center">
+                    <h2 className="text-3xl font-extrabold">
+                        {type === "signup" ? "Create an Account" : "Sign In"}
+                    </h2>
+                    <p className="text-slate-500 mt-2">
+                        {type === "signin"
+                            ? "Don't have an account?"
+                            : "Already have an account?"}
+                        <Link
+                            className="pl-2 underline text-blue-600 hover:text-blue-800"
+                            to={type === "signin" ? "/signup" : "/signin"}
+                        >
                             {type === "signin" ? "Sign up" : "Sign in"}
                         </Link>
+                    </p>
+                </div>
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        sendRequest();
+                    }}
+                >
+                    {type === "signup" && (
+                        <LabelledInput
+                            label="Name"
+                            placeholder="Raghvendra Dhakad..."
+                            onChange={(e) =>
+                                setPostInputs({
+                                    ...postInputs,
+                                    name: e.target.value,
+                                })
+                            }
+                        />
+                    )}
+                    <LabelledInput
+                        label="Username"
+                        placeholder="example@gmail.com"
+                        onChange={(e) =>
+                            setPostInputs({
+                                ...postInputs,
+                                username: e.target.value,
+                            })
+                        }
+                    />
+                    <LabelledInput
+                        label="Password"
+                        type="password"
+                        placeholder="Enter your password"
+                        onChange={(e) =>
+                            setPostInputs({
+                                ...postInputs,
+                                password: e.target.value,
+                            })
+                        }
+                    />
+                    <button
+                        type="submit"
+                        className="mt-6 w-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
+                    >
+                        {type === "signup" ? "Sign up" : "Sign in"}
+                    </button>
+                </form>
+                {error && (
+                    <div className="mt-4 text-sm text-red-500 bg-red-100 p-2 rounded">
+                        {error}
                     </div>
-                </div>
-                <div className="pt-8">
-                    {type === "signup" ? <LabelledInput label="Name" placeholder="Harkirat Singh..." onChange={(e) => {
-                        setPostInputs({
-                            ...postInputs,
-                            name: e.target.value
-                        })
-                    }} /> : null}
-                    <LabelledInput label="Username" placeholder="harkirat@gmail.com" onChange={(e) => {
-                        setPostInputs({
-                            ...postInputs,
-                            username: e.target.value
-                        })
-                    }} />
-                    <LabelledInput label="Password" type={"password"} placeholder="123456" onChange={(e) => {
-                        setPostInputs({
-                            ...postInputs,
-                            password: e.target.value
-                        })
-                    }} />
-                    <button onClick={sendRequest} type="button" className="mt-8 w-full text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">{type === "signup" ? "Sign up" : "Sign in"}</button>
-                </div>
+                )}
             </div>
         </div>
-    </div>
-}
+    );
+};
 
 interface LabelledInputType {
     label: string;
@@ -72,8 +112,16 @@ interface LabelledInputType {
 }
 
 function LabelledInput({ label, placeholder, onChange, type }: LabelledInputType) {
-    return <div>
-        <label className="block mb-2 text-sm text-black font-semibold pt-4">{label}</label>
-        <input onChange={onChange} type={type || "text"} id="first_name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder={placeholder} required />
-    </div>
+    return (
+        <div className="mb-4">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>
+            <input
+                type={type || "text"}
+                className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                placeholder={placeholder}
+                onChange={onChange}
+                required
+            />
+        </div>
+    );
 }
