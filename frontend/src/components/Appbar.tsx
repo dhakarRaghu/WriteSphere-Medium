@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 export const Appbar = () => {
     const navigate = useNavigate();
     const [showDropdown, setShowDropdown] = useState(false);
+    //@ts-ignore
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const handleLogout = () => {
